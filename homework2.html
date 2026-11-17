@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>线控底盘平台需求规格分析（BRS / StRS） - 复杂系统工程</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        .container { max-width: 1080px; margin: 0 auto; }
+        .top-nav { margin-bottom: 25px; }
+        .top-nav a {
+            color: rgba(255,255,255,0.9); text-decoration: none; font-size: 0.95em;
+            background: rgba(255,255,255,0.15); padding: 8px 16px; border-radius: 20px;
+            display: inline-block; transition: background 0.2s;
+        }
+        .top-nav a:hover { background: rgba(255,255,255,0.28); }
+        h1 { color: white; text-align: center; font-size: 2.3em; margin-bottom: 10px; text-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+        .subtitle { color: rgba(255,255,255,0.9); text-align: center; font-size: 1.1em; margin-bottom: 45px; }
+        .section { background: white; border-radius: 16px; padding: 30px; margin-bottom: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .section > h2 { color: #667eea; margin-bottom: 18px; font-size: 1.5em; border-left: 5px solid #667eea; padding-left: 15px; }
+        .section > h3 { color: #444; margin: 20px 0 10px; font-size: 1.15em; }
+        .level-tag { display: inline-block; background: #667eea; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.85em; margin-bottom: 15px; }
+        .level-tag.gold { background: #ffd700; color: #333; }
+        .content { color: #555; line-height: 1.8; }
+        .content p { margin-bottom: 10px; }
+        .content ul { margin-left: 20px; margin-top: 8px; }
+        .content li { margin-bottom: 8px; }
+        .content strong { color: #333; }
+        .grid-two { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 12px; }
+        .card-mini { background: #f7f8fc; border-radius: 12px; padding: 18px; }
+        .card-mini h4 { color: #667eea; margin-bottom: 8px; font-size: 1.02em; }
+        table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 0.92em; }
+        th, td { border: 1px solid #e3e6f0; padding: 10px 12px; text-align: left; vertical-align: top; line-height: 1.6; }
+        th { background: #667eea; color: white; font-weight: 600; }
+        tbody tr:nth-child(even) { background: #f7f8fc; }
+        .req-id { font-family: monospace; color: #667eea; font-weight: 700; white-space: nowrap; }
+        .priority-must { color: #c0392b; font-weight: 700; }
+        .priority-should { color: #e67e22; font-weight: 700; }
+        .note { background: #fff8e6; border-left: 4px solid #ffd700; border-radius: 8px; padding: 14px 18px; margin-top: 14px; color: #6b5d2a; font-size: 0.93em; }
+        .footer { text-align: center; color: rgba(255,255,255,0.8); margin-top: 40px; font-size: 0.9em; }
+        @media (max-width: 760px) { .grid-two { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav class="top-nav">
+            <a href="index.html">← 返回作业导航首页</a>
+        </nav>
+
+        <h1>线控底盘平台需求规格分析</h1>
+        <p class="subtitle">复杂系统工程 · 小组作业2 · BRS 与 StRS · ConOps / OpsCon / 相关方需求</p>
+
+        <div class="section">
+            <span class="level-tag">0 · 作业概述</span>
+            <h2>系统对象与作业目的</h2>
+            <div class="content">
+                <p><strong>所选系统：</strong>面向高级别自动驾驶（L4/L5）的线控底盘平台（延续作业1所确定的 System 层级对象）。该平台向上对接自动驾驶决策规划系统，向下驱动转向、制动、驱动等执行子系统，是车辆运动控制的执行核心。</p>
+                <p><strong>作业目的：</strong>围绕所选系统，结合小组讨论与 AI 问答，完成业务/任务分析与相关方需求分析及定义；参考《第4章 概念定义》表 4-1（BRS 范例轮廓）与表 4-5（StRS 范例轮廓），完整输出业务需求规格说明书（BRS）与相关方需求规格说明书（StRS）。</p>
+                <div class="grid-two">
+                    <div class="card-mini">
+                        <h4>BRS（业务需求规格说明书）</h4>
+                        <p>在组织/业务层面描述业务环境、目的目标、业务模型与业务运行需求，回答"为什么做、业务上要实现什么、用什么指标衡量成功"。</p>
+                    </div>
+                    <div class="card-mini">
+                        <h4>StRS（相关方需求规格说明书）</h4>
+                        <p>从用户、操作者、维护者等相关方视角，在使用环境中派生准确、清晰、可验证的系统需求，回答"各方需要系统做到什么"。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <span class="level-tag">1 · BRS 业务需求规格说明书</span>
+            <h2>业务需求规格说明（Business Requirements Specification）</h2>
+
+            <h3>1. 简介</h3>
+            <div class="content">
+                <p><strong>1.1 业务目的：</strong>推动高级别自动驾驶商业化落地，需要底盘由"由人操控的机械总成"转变为"可被自动驾驶系统直接调用、可闭环验证的执行平台"。本项目旨在构建标准化、平台化的线控底盘执行底座，支撑多车型自动驾驶产品的研发、适配与量产交付。</p>
+                <p><strong>1.2 业务范围：</strong>业务域为智能电动汽车底盘执行系统；业务活动范围覆盖平台需求分解、开发验证、量产装配、交付运营与售后迭代；系统范围包括线控转向、线控制动、线控驱动、底盘集成控制及其控制软硬件，不含上层感知、决策与规划算法。范围外实体包括自动驾驶域控制器、整车车身与座舱、路侧与云控平台。</p>
+                <p><strong>1.3 业务概况：</strong>内部由转向、制动、驱动、集成控制与底盘域控等分块构成；外部对接自动驾驶域控制器、整车厂、出行运营方、监管认证机构与乘员，各实体通过标准机械、电气与通信接口相互关联。</p>
+                <p><strong>1.4 定义：</strong>线控底盘（X-by-Wire Chassis）：以电信号替代机械/液压连接完成转向、制动、驱动力矩传递的底盘系统；功能安全按 ISO 26262 评估，预期功能安全参考 ISO 21448（SOTIF）。</p>
+                <p><strong>1.5 主要相关方：</strong>整车厂（OEM）、自动驾驶方案商、整车集成与测试团队、零部件供应商、出行/运营服务商、监管与认证机构、乘员/最终用户、运维售后团队。</p>
+            </div>
+
+            <h3>2. 业务管理需求</h3>
+            <div class="content">
+                <div class="grid-two">
+                    <div class="card-mini">
+                        <h4>2.1 业务环境</h4>
+                        <ul>
+                            <li><strong>政策法规：</strong>智能网联汽车准入与上路管理、功能安全/预期功能安全与信息安全合规要求；</li>
+                            <li><strong>市场趋势：</strong>Robotaxi、无人配送、干线物流等自动驾驶场景走向商业化；</li>
+                            <li><strong>技术基础：</strong>线控执行器、分布式电驱动、车用总线（CAN/LIN/Ethernet）与冗余通信日趋成熟；</li>
+                            <li><strong>社会责任：</strong>保障道路交通安全、降低能耗与排放。</li>
+                        </ul>
+                    </div>
+                    <div class="card-mini">
+                        <h4>2.2 使命、目的与目标</h4>
+                        <ul>
+                            <li><strong>使命：</strong>为 L4/L5 级自动驾驶提供安全、可靠的车辆运动执行底座；</li>
+                            <li><strong>目的：</strong>使自动驾驶决策规划指令能够被高精度、高可靠地转化为车辆横纵向运动；</li>
+                            <li><strong>目标：</strong>达到规定的响应时延、控制精度、冗余可用率与乘坐舒适性指标。</li>
+                        </ul>
+                    </div>
+                    <div class="card-mini">
+                        <h4>2.3 业务模型</h4>
+                        <ul>
+                            <li>以平台化产品供给整车厂与出行运营商，支撑多车型适配与批量交付；</li>
+                            <li>通过后续 OTA 迭代、诊断数据回传与售后运维形成持续服务；</li>
+                            <li>以标准化接口降低跨车型、跨供应链的集成成本。</li>
+                        </ul>
+                    </div>
+                    <div class="card-mini">
+                        <h4>2.4 信息环境</h4>
+                        <ul>
+                            <li><strong>项目组合：</strong>多车型底盘平台共线开发，明确项目间优先级与定位；</li>
+                            <li><strong>长期系统计划：</strong>与整车电子电气架构演进路线保持一致；</li>
+                            <li><strong>数据配置：</strong>统一的车辆运行数据、故障诊断库及其可用性、可访问性约束。</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <h3>3. 业务运行需求</h3>
+            <div class="content">
+                <p><strong>3.1 业务过程：</strong>订单与需求输入 → 平台需求分解 → 子系统/模块开发 → 台架/在环/整车验证 → 量产装配 → 交付运营 → 运维与迭代，各过程之间以接口与数据交付物衔接。</p>
+                <p><strong>3.2 业务运营策略与规则：</strong></p>
+                <ul>
+                    <li>每条底盘控制指令必须闭环校验，执行结果需反馈回上层系统；</li>
+                    <li>检测到故障时须按规则降级运行并上报，必要时进入最小风险状态；</li>
+                    <li>关键控制过程与故障事件须留痕记录，支持事后追溯与审计。</li>
+                </ul>
+                <p><strong>3.3 业务运行约束：</strong>满足功能安全 ASIL-D 相关约束；控制响应时延 ≤ 10 ms；适应车用温度、振动与电磁环境；满足车载信息安全（防篡改、防劫持）要求；在既定成本与进度范围内交付。</p>
+                <p><strong>3.4 业务运行质量：</strong>高层级可用性目标 ≥ 99.999%；兼顾效能、效率与乘坐满意度；紧急安全工况的优先级高于一般舒适性与经济性指标。</p>
+                <p><strong>3.5 业务结构：</strong>设置底盘系统团队、子系统团队、模块团队、测试验证团队与运营支持团队；明确各角色职责，并支持未来平台化扩展带来的结构调整。</p>
+            </div>
+
+            <h3>4. 提案系统初步运行概念</h3>
+            <div class="content">
+                <p><strong>4.1 初步运行概念：</strong>线控底盘平台作为黑盒执行核心，接收自动驾驶规划给出的轨迹/力矩指令，完成横纵向运动控制并反馈状态；支持自动驾驶模式、人工兜底模式与最小风险策略；相关人员包括远程安全员、运营调度人员与维护人员；运行于整车供电、总线通信与诊断工具所构成的支持环境中。</p>
+                <p><strong>4.2 初步运行场景：</strong>以"城市道路巡航跟车—变道—路口通行—泊车"为典型场景串接平台运行过程；另给出执行器降级、通信中断等退化与异常场景（详见第 6 章 OpsCon）。</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <span class="level-tag">2 · StRS 相关方需求规格说明书</span>
+            <h2>相关方需求规格说明（Stakeholder Requirements Specification）</h2>
+
+            <h3>1. 简介</h3>
+            <div class="content">
+                <p><strong>1.1 相关方目的：</strong>从使用者、操作者、维护者及监管者等视角，把业务价值落实为可执行、可验证的系统需求，确保各方需要与期望在需求中得到充分反映并达成一致。</p>
+                <p><strong>1.2 相关方范围：</strong>覆盖系统采办、开发、集成、运行、维护与监管全生命周期的相关方，包括可能受系统影响或能够影响系统的个人与组织。</p>
+                <p><strong>1.3 概况：</strong>StRS 衔接 BRS 所定义的业务环境与后续系统需求（SyRS），在特定使用环境中派生使用者、操作者、维护者等相关方的准确需求。</p>
+                <p><strong>1.4 定义：</strong>需要（Need）是相关方立场上的意图与期望，是需求的输入；需求（Requirement）是需要经过完整性、正式表达与多方权衡分析后的结果，须有约束边界、可行且可验证。</p>
+                <p><strong>1.5 相关方：</strong>详见第 3 章相关方列表与分析矩阵。</p>
+            </div>
+
+            <h3>2. 系统运行需求</h3>
+            <div class="content">
+                <p><strong>2.1 系统过程：</strong>指令接收 → 横/纵向控制求解 → 执行器驱动 → 状态反馈闭环；过程中持续进行故障监控；出现异常时触发冗余切换与最小风险策略。</p>
+                <p><strong>2.2 系统运行策略与规则：</strong>双通道/双冗余通道之间按规则切换；失效安全规则保证任意单点故障不导致不可控；人机交接与远程接管规则须明确责任边界。</p>
+                <p><strong>2.3 系统运行约束：</strong>受成本、进度、软硬件接口、通信协议、功能安全与信息安全合规等约束；需求须独立于具体实现设计，保留多种可行实现路径。</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <span class="level-tag">3 · 相关方列表与分析矩阵</span>
+            <h2>相关方识别与影响力 / 重要性分析</h2>
+            <div class="content">
+                <p>依据权利—利益、影响力—重要性等维度对相关方进行分析，确定其优先级，作为相关方需求排序的依据。</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>编号</th>
+                            <th>相关方</th>
+                            <th>主要利益点</th>
+                            <th>态度</th>
+                            <th>影响力</th>
+                            <th>重要性</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>S1</td><td>整车厂（OEM）</td><td>平台可适配多车型、按期量产、质量可控</td><td>+2 支持</td><td>强</td><td>高</td></tr>
+                        <tr><td>S2</td><td>自动驾驶方案商</td><td>执行接口开放、指令响应可控、状态可反馈</td><td>+1 支持</td><td>中</td><td>高</td></tr>
+                        <tr><td>S3</td><td>整车集成 / 测试团队</td><td>边界清晰、可测试、可诊断、易排障</td><td>+1 支持</td><td>中</td><td>中</td></tr>
+                        <tr><td>S4</td><td>零部件供应商</td><td>接口标准化、供货稳定、责任明确</td><td>0 中立</td><td>中</td><td>中</td></tr>
+                        <tr><td>S5</td><td>出行 / 运营服务商</td><td>车队高可用、停运率低、运营成本可控</td><td>+1 支持</td><td>中</td><td>高</td></tr>
+                        <tr><td>S6</td><td>监管 / 认证机构</td><td>安全合规、过程可追溯、风险可控</td><td>+2 支持</td><td>强</td><td>高</td></tr>
+                        <tr><td>S7</td><td>乘员 / 最终用户</td><td>乘坐安全、平顺舒适、行程可靠</td><td>+1 支持</td><td>弱</td><td>高</td></tr>
+                        <tr><td>S8</td><td>运维 / 售后团队</td><td>可维护、可诊断、备件可达、维修便捷</td><td>0 中立</td><td>弱</td><td>中</td></tr>
+                        <tr><td>S9</td><td>开发团队（本团队）</td><td>需求清晰、可行可验证、边界明确</td><td>+1 支持</td><td>弱</td><td>中</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="section">
+            <span class="level-tag gold">4 · 相关方需求（需要 → 需求转化）</span>
+            <h2>相关方需求清单</h2>
+            <div class="content">
+                <p>下表将各相关方的原始需要（主观意图）经需求分析转化为完整、有约束、可验证的相关方需求，并标注优先级（必须 / 应该 / 可能）与验证方式。</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>需求编号</th>
+                            <th>相关方</th>
+                            <th>原始需要</th>
+                            <th>转化后的相关方需求</th>
+                            <th>优先级</th>
+                            <th>理由 / 验证方式</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="req-id">REQ-01</td>
+                            <td>S1 整车厂</td>
+                            <td>底盘要"好装、好适配"</td>
+                            <td>线控底盘平台提供标准化机械、电气与通信接口，支持多车型快速适配与批量装配。</td>
+                            <td class="priority-must">必须</td>
+                            <td>保障平台化量产；通过接口兼容性测试与样车装配验证。</td>
+                        </tr>
+                        <tr>
+                            <td class="req-id">REQ-02</td>
+                            <td>S2 方案商</td>
+                            <td>执行要"听话、可控"</td>
+                            <td>横纵向控制指令闭环响应，转向角/转向力矩、减速度/驱动力矩的控制精度满足规定指标，执行状态实时反馈。</td>
+                            <td class="priority-must">必须</td>
+                            <td>保障自动驾驶指令可执行；通过台架与在环测试验证。</td>
+                        </tr>
+                        <tr>
+                            <td class="req-id">REQ-03</td>
+                            <td>S6 监管机构</td>
+                            <td>出事要"可查、可追溯"</td>
+                            <td>关键控制指令、执行状态与故障事件须完整记录并支持事后追溯与审计。</td>
+                            <td class="priority-must">必须</td>
+                            <td>满足合规与责任界定；通过日志审计与追溯性评审验证。</td>
+                        </tr>
+                        <tr>
+                            <td class="req-id">REQ-04</td>
+                            <td>S7 乘员</td>
+                            <td>乘坐要"平稳、舒服"</td>
+                            <td>控制过程平顺，加速度及其变化率（jerk）限制在舒适区间，避免突兀动作。</td>
+                            <td class="priority-should">应该</td>
+                            <td>保障乘坐体验；通过客观指标测试与主观舒适性评价验证。</td>
+                        </tr>
+                        <tr>
+                            <td class="req-id">REQ-05</td>
+                            <td>S8 运维团队</td>
+                            <td>"坏了好修、能定位"</td>
+                            <td>具备自诊断与故障定位能力，提供冗余降级提示与维修引导，备件可达。</td>
+                            <td class="priority-should">应该</td>
+                            <td>缩短维护停机时间；通过故障注入测试与维护流程演练验证。</td>
+                        </tr>
+                        <tr>
+                            <td class="req-id">REQ-06</td>
+                            <td>S5 运营方</td>
+                            <td>车队要"少停运、可监控"</td>
+                            <td>平台具备高可用性，支持远程状态监控、故障预警与 OTA 迭代升级。</td>
+                            <td class="priority-should">应该</td>
+                            <td>保障持续运营；通过可靠性统计与远程监控演示验证。</td>
+                        </tr>
+                        <tr>
+                            <td class="req-id">REQ-07</td>
+                            <td>S4 供应商</td>
+                            <td>接口要"统一、好供货"</td>
+                            <td>执行器与控制器之间遵循统一接口规范，减少非标定制。</td>
+                            <td class="priority-should">应该</td>
+                            <td>降低供应链集成成本；通过接口规范评审与一致性测试验证。</td>
+                        </tr>
+                        <tr>
+                            <td class="req-id">REQ-08</td>
+                            <td>S9 开发团队</td>
+                            <td>需求要"清晰、能落地"</td>
+                            <td>每条需求可通过检查、分析、演示或测试验证，且独立于具体设计实现，保留多种可行方案。</td>
+                            <td class="priority-must">必须</td>
+                            <td>保障需求工程质量；通过需求评审与需求追溯矩阵检查。</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="note">
+                    需求说明：上述需求均遵循"完整、一致、结构化、可追溯、可行、简洁"的需求规格原则；需求之间无冲突，高优先级（必须）需求在设计与验证中优先保障。
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <span class="level-tag">5 · ConOps 运营概念（体系 / 组织层面）</span>
+            <h2>Concept of Operations</h2>
+            <div class="content">
+                <p><strong>层级定位：</strong>ConOps 在组织/体系层面描述组织预期的运作方式、目的与目标，面向由多个系统组合而成的体系，描述系统之间多对多的交互关系。</p>
+                <div class="grid-two">
+                    <div class="card-mini">
+                        <h4>目标、目的与期望</h4>
+                        <ul>
+                            <li>在智能网联交通体系中，实现车辆运动执行的安全、高效与舒适；</li>
+                            <li>支撑单车智能与车路云协同下的自动驾驶商业化运营；</li>
+                            <li>形成可复制、可扩展的底盘平台能力。</li>
+                        </ul>
+                    </div>
+                    <div class="card-mini">
+                        <h4>项目范围与相关方职责</h4>
+                        <ul>
+                            <li>范围：线控底盘平台及其与自动驾驶系统、整车、云控平台的接口；</li>
+                            <li>OEM 负责整车集成与量产，方案商提供决策规划；底盘团队开发执行平台，运营方负责车队调度，机构负责合规监管。</li>
+                        </ul>
+                    </div>
+                    <div class="card-mini">
+                        <h4>系统集如何运行</h4>
+                        <ul>
+                            <li>车辆在 V2X 体系中单车或编队运行，底盘作为执行核心承接上层指令并反馈状态；</li>
+                            <li>云控平台进行远程监控、调度与 OTA，路侧单元提供环境协同信息。</li>
+                        </ul>
+                    </div>
+                    <div class="card-mini">
+                        <h4>运行与支持环境</h4>
+                        <ul>
+                            <li>运行环境：城市道路、园区、场站等自动驾驶场景；</li>
+                            <li>支持环境：整车供电与通信网络、诊断工具、充电与运维设施、云端数据平台。</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <span class="level-tag">6 · OpsCon 运行概念（系统层面）</span>
+            <h2>Operational Concept</h2>
+            <div class="content">
+                <p><strong>层级定位：</strong>OpsCon 针对某一特定系统，从用户视角描述系统将做什么、为什么这么做；以目标系统为核心，描述其与体系中其他系统的一对多交互关系。</p>
+                <h3>7.1 上下文环境与外部接口</h3>
+                <ul>
+                    <li><strong>上游：</strong>自动驾驶域控制器（下发轨迹、力矩/转向/制动指令）；</li>
+                    <li><strong>下游：</strong>转向、制动、驱动等执行子系统；</li>
+                    <li><strong>支撑：</strong>整车 12V/48V 电源、车载总线、诊断与监控接口；</li>
+                    <li><strong>人员：</strong>远程安全员、运营调度人员、维护人员。</li>
+                </ul>
+                <h3>7.2 正常运行场景</h3>
+                <ul>
+                    <li><strong>巡航跟车：</strong>依据规划轨迹维持车速与车距，纵向驱动力矩/制动力矩闭环控制；</li>
+                    <li><strong>变道通行：</strong>协调横向转向与纵向车速，完成平稳变道；</li>
+                    <li><strong>路口通行 / 泊车：</strong>低速工况下精确控制转向与制动，保障就位精度。</li>
+                </ul>
+                <h3>7.3 退化运行场景</h3>
+                <ul>
+                    <li>单通道或单个执行器性能下降时，冗余通道接管，维持基本可控运行并提示降级；</li>
+                    <li>部分传感器精度受限时，采用降级控制策略，限制车速与工况。</li>
+                </ul>
+                <h3>7.4 异常场景与最小风险策略</h3>
+                <ul>
+                    <li>执行器卡死、通信中断或关键传感器失效时，触发失效安全规则；</li>
+                    <li>按策略进入最小风险状态：减速、靠边、驻车，并向远程安全员与监控平台上报。</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <span class="level-tag">7 · 需求追溯与小结</span>
+            <h2>追溯关系与结论</h2>
+            <div class="content">
+                <p><strong>追溯链路：</strong>业务需求（BRS）→ 相关方需求（StRS）→ 后续系统需求（SyRS）→ 子系统与模块需求。每条相关方需求均可追溯到对应相关方及其原始需要，并在验证阶段对应到相应测试或评审活动。</p>
+                <p><strong>小结：</strong>本次作业以"面向高级别自动驾驶的线控底盘平台"为对象，依据表 4-1、表 4-5 框架完成了 BRS 与 StRS 的概念定义：在业务层面明确了目的、环境、模型与运行质量，在相关方层面识别并分析了九类相关方，将其需要转化为八项可验证需求，并区分了体系层面的 ConOps 与系统层面的 OpsCon，为后续系统需求定义与架构设计奠定基础。</p>
+            </div>
+        </div>
+
+        <p class="footer">Complex Systems Engineering · 小组作业2 · 2026 · TheWinter-lz</p>
+    </div>
+</body>
+</html>
