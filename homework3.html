@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>线控底盘平台 SyRS 系统需求与初始架构 - 复杂系统工程</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        .container { max-width: 1080px; margin: 0 auto; }
+        .top-nav { margin-bottom: 25px; }
+        .top-nav a {
+            color: rgba(255,255,255,0.9); text-decoration: none; font-size: 0.95em;
+            background: rgba(255,255,255,0.15); padding: 8px 16px; border-radius: 20px;
+            display: inline-block; transition: background 0.2s;
+        }
+        .top-nav a:hover { background: rgba(255,255,255,0.28); }
+        h1 { color: white; text-align: center; font-size: 2.3em; margin-bottom: 10px; text-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+        .subtitle { color: rgba(255,255,255,0.9); text-align: center; font-size: 1.1em; margin-bottom: 45px; }
+        .section { background: white; border-radius: 16px; padding: 30px; margin-bottom: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .section > h2 { color: #667eea; margin-bottom: 18px; font-size: 1.5em; border-left: 5px solid #667eea; padding-left: 15px; }
+        .section > h3 { color: #444; margin: 20px 0 10px; font-size: 1.15em; }
+        .level-tag { display: inline-block; background: #667eea; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.85em; margin-bottom: 15px; }
+        .level-tag.gold { background: #ffd700; color: #333; }
+        .content { color: #555; line-height: 1.8; }
+        .content p { margin-bottom: 10px; }
+        .content ul { margin-left: 20px; margin-top: 8px; }
+        .content li { margin-bottom: 8px; }
+        .content strong { color: #333; }
+        .grid-two { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 12px; }
+        .card-mini { background: #f7f8fc; border-radius: 12px; padding: 18px; }
+        .card-mini h4 { color: #667eea; margin-bottom: 8px; font-size: 1.02em; }
+        table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 0.92em; }
+        th, td { border: 1px solid #e3e6f0; padding: 10px 12px; text-align: left; vertical-align: top; line-height: 1.6; }
+        th { background: #667eea; color: white; font-weight: 600; }
+        tbody tr:nth-child(even) { background: #f7f8fc; }
+        .req-id { font-family: monospace; color: #667eea; font-weight: 700; white-space: nowrap; }
+        .note { background: #fff8e6; border-left: 4px solid #ffd700; border-radius: 8px; padding: 14px 18px; margin-top: 14px; color: #6b5d2a; font-size: 0.93em; }
+        .footer { text-align: center; color: rgba(255,255,255,0.8); margin-top: 40px; font-size: 0.9em; }
+        .diagram { background: #f7f8fc; border-radius: 12px; padding: 24px 18px; margin-top: 14px; }
+        .diag-row { display: flex; justify-content: center; gap: 18px; flex-wrap: wrap; }
+        .diag-box { background: white; border: 2px solid #667eea; border-radius: 12px; padding: 14px 18px; text-align: center; min-width: 150px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .diag-box .box-title { font-weight: 700; color: #333; font-size: 1.0em; }
+        .diag-box .box-sub { font-size: 0.82em; color: #888; margin-top: 4px; }
+        .diag-box.hl { background: #667eea; border-color: #5568d3; }
+        .diag-box.hl .box-title, .diag-box.hl .box-sub { color: white; }
+        .diag-box.safe { border-color: #e67e22; background: #fff3e8; }
+        .diag-arrow { text-align: center; color: #667eea; font-size: 1.4em; font-weight: bold; margin: 8px 0; }
+        .feedback { border: 1.5px dashed #e67e22; border-radius: 10px; padding: 10px 14px; margin-top: 12px; text-align: center; color: #e67e22; font-size: 0.9em; }
+        @media (max-width: 760px) { .grid-two { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav class="top-nav">
+            <a href="index.html">← 返回作业导航首页</a>
+        </nav>
+
+        <h1>线控底盘平台 · 系统需求与初始架构</h1>
+        <p class="subtitle">复杂系统工程 · 小组作业3 · SyRS 系统需求规格书 · 初始架构 · 控制框图 · 安全需求与安全架构</p>
+
+        <div class="section">
+            <span class="level-tag">0 · 作业概述</span>
+            <h2>系统对象与作业目的</h2>
+            <div class="content">
+                <p><strong>所选系统：</strong>面向高级别自动驾驶（L4/L5）的线控底盘平台（延续作业1的系统层对象、作业2的 BRS/StRS 分析结论）。本阶段进入方案域，从技术视角定义系统应具备的功能、性能与接口，并给出初始系统架构与安全方案。</p>
+                <p><strong>作业目的：</strong>结合小组讨论与 AI 问答，进行系统需求分析及架构定义；参考第5章表 5-1（ISO/IEC/IEEE 29148:2018 SyRS 范例），输出系统需求规格书（SyRS）、初始系统架构、系统控制框图，以及安全需求与安全架构。</p>
+                <div class="note">
+                    <strong>需求追溯链路：</strong>业务需求 BRS（作业2）→ 相关方需求 StRS（作业2）→ <strong>系统需求 SyRS（本作业）</strong>→ 系统架构与设计 → 子系统/模块需求。系统需求是架构、设计、集成与验证的基础；在约束允许的前提下，系统需求只描述"系统要做什么"，不暗含具体实现方案。
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <span class="level-tag">1 · SyRS 系统需求规格说明书</span>
+            <h2>系统需求规格说明（System Requirements Specification）</h2>
+
+            <h3>1.1 简介</h3>
+            <div class="content">
+                <p><strong>目的：</strong>将作业2确定的相关方需求转换为技术视角、可度量的系统需求集，明确线控底盘平台应具备的功能、性能、接口与质量特性，作为架构定义与后续设计、验证的基线。</p>
+                <p><strong>范围：</strong>覆盖线控转向、线控制动、线控驱动、底盘集成控制及其控制软硬件；不含上层感知、决策与规划算法。外部交互对象包括自动驾驶域控制器、整车供电与通信网络、执行子系统与传感器。</p>
+                <p><strong>定义：</strong>SyRS（System Requirements Specification）系统需求规格说明书；FR 功能需求、PR 性能需求、IR 接口需求、QR 质量特性需求、SR 安全需求。</p>
+            </div>
+
+            <h3>1.2 外部接口需求（IR）</h3>
+            <div class="content">
+                <table>
+                    <thead><tr><th>编号</th><th>接口方向</th><th>接口对象</th><th>接口需求描述</th></tr></thead>
+                    <tbody>
+                        <tr><td class="req-id">IR-01</td><td>上游输入</td><td>自动驾驶域控制器（ADS）</td><td>接收规划轨迹、期望转向角/力矩、期望减速度/驱动力矩指令；反馈底盘状态与故障信息。</td></tr>
+                        <tr><td class="req-id">IR-02</td><td>下游输出</td><td>转向 / 制动 / 驱动执行子系统</td><td>向下发执行控制指令，并采集各执行器位置、力矩、温度等反馈信号。</td></tr>
+                        <tr><td class="req-id">IR-03</td><td>支撑接口</td><td>整车电源 / 车载总线 / 诊断接口</td><td>接入 12V/48V 冗余电源；通过 CAN/LIN/Ethernet 通信；支持诊断读取与故障码上报。</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>1.3 功能需求（FR）</h3>
+            <div class="content">
+                <table>
+                    <thead><tr><th>编号</th><th>功能需求描述</th><th>追溯 StRS</th></tr></thead>
+                    <tbody>
+                        <tr><td class="req-id">FR-01</td><td>接收并解析 ADS 下发的横纵向控制指令，进行指令有效性与合理性校验。</td><td>REQ-02</td></tr>
+                        <tr><td class="req-id">FR-02</td><td>实现线控转向控制：按期望转向角/力矩驱动转向执行器，并闭环反馈转角状态。</td><td>REQ-02</td></tr>
+                        <tr><td class="req-id">FR-03</td><td>实现线控制动控制：按期望减速度/制动力矩驱动制动执行器，实现车辆减速与驻车。</td><td>REQ-02</td></tr>
+                        <tr><td class="req-id">FR-04</td><td>实现线控驱动控制：按期望驱动力矩协调驱动执行器，提供加速与驱动力矩矢量分配。</td><td>REQ-02</td></tr>
+                        <tr><td class="req-id">FR-05</td><td>横纵向运动协调控制：综合转向、制动、驱动指令，维持车辆稳定性与轨迹跟踪。</td><td>REQ-02 / REQ-04</td></tr>
+                        <tr><td class="req-id">FR-06</td><td>状态监控与故障诊断：实时监控各通道、执行器与传感器状态，定位故障并生成故障码。</td><td>REQ-03 / REQ-05</td></tr>
+                        <tr><td class="req-id">FR-07</td><td>降级与最小风险控制：检测到故障时按规则降级运行，必要时进入减速、靠边、驻车的最小风险状态。</td><td>REQ-03 / REQ-05</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>1.4 性能需求（PR）</h3>
+            <div class="content">
+                <table>
+                    <thead><tr><th>编号</th><th>性能指标需求</th><th>指标要求</th><th>验证准则</th></tr></thead>
+                    <tbody>
+                        <tr><td class="req-id">PR-01</td><td>控制响应时延</td><td>指令接收到执行输出的响应延迟 ≤ 10 ms</td><td>台架/在环测试测量时延</td></tr>
+                        <tr><td class="req-id">PR-02</td><td>轨迹/位置控制精度</td><td>横向轨迹跟踪误差 ≤ 0.1 m</td><td>整车场地测试与数据分析</td></tr>
+                        <tr><td class="req-id">PR-03</td><td>系统可用性</td><td>运行可用性 ≥ 99.999%</td><td>可靠性统计与可用性分析</td></tr>
+                        <tr><td class="req-id">PR-04</td><td>乘坐舒适性</td><td>加速度及其变化率（jerk）限制在舒适区间，避免突兀动作</td><td>客观指标测试 + 主观评价</td></tr>
+                        <tr><td class="req-id">PR-05</td><td>闭环反馈周期</td><td>状态采集与控制闭环按规定周期稳定执行，无丢失指令</td><td>在环测试监视闭环周期与丢包率</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>1.5 质量特性需求（QR）</h3>
+            <div class="content">
+                <div class="grid-two">
+                    <div class="card-mini">
+                        <h4>可靠性 / 可用性</h4>
+                        <ul>
+                            <li>关键控制通道具备冗余设计，单点故障不导致完全失控；</li>
+                            <li>故障可被检测、隔离并提示，支持持续降级运行。</li>
+                        </ul>
+                    </div>
+                    <div class="card-mini">
+                        <h4>可维护性 / 可支持性</h4>
+                        <ul>
+                            <li>支持自诊断、故障定位与维修引导，备件可达；</li>
+                            <li>具备远程状态监控与 OTA 迭代升级能力。</li>
+                        </ul>
+                    </div>
+                    <div class="card-mini">
+                        <h4>环境适应性</h4>
+                        <ul>
+                            <li>适应车用温度、振动、湿度与电磁兼容环境；</li>
+                            <li>在规定环境范围内功能与性能不降级失效。</li>
+                        </ul>
+                    </div>
+                    <div class="card-mini">
+                        <h4>信息安全</h4>
+                        <ul>
+                            <li>通信与控制指令具备防篡改、防劫持保护；</li>
+                            <li>关键操作与数据可追溯，满足车载信息安全要求。</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <h3>1.6 设计约束</h3>
+            <div class="content">
+                <ul>
+                    <li><strong>功能安全约束：</strong>安全相关需求满足 ISO 26262 相应 ASIL 等级（最高按 ASIL-D 考量），预期功能安全参考 ISO 21448（SOTIF）。</li>
+                    <li><strong>接口与标准约束：</strong>遵循统一的机械、电气与通信接口规范，兼容整车电子电气架构。</li>
+                    <li><strong>资源约束：</strong>在既定成本、重量、功耗与进度范围内实现；需求不绑定单一供应商或单一实现方案。</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <span class="level-tag">2 · 初始系统架构</span>
+            <h2>初始系统架构定义</h2>
+            <div class="content">
+                <p><strong>架构定义：</strong>系统架构是系统在其环境中的基本概念与属性，以及组织组件、子系统使其紧密协同工作的结构、行为与设计决策。本架构将线控底盘平台划分为四个逻辑层次，明确功能映射与组件分工。</p>
+                <h3>2.1 逻辑分层架构</h3>
+                <table>
+                    <thead><tr><th>层次</th><th>组成组件</th><th>主要职责</th></tr></thead>
+                    <tbody>
+                        <tr><td><strong>决策控制层</strong></td><td>底盘域控制器（VCU）、主控制 MCU、冗余监控 MCU</td><td>指令解析、横纵向协调控制、策略决策、故障监控与冗余切换。</td></tr>
+                        <tr><td><strong>执行层</strong></td><td>线控转向子系统、线控制动子系统、线控驱动子系统</td><td>执行转向、制动、驱动力矩输出，完成车辆横纵向运动。</td></tr>
+                        <tr><td><strong>感知反馈层</strong></td><td>转角/力矩传感器、轮速传感器、压力传感器、温度传感器</td><td>采集执行状态与车辆运动状态，形成闭环反馈。</td></tr>
+                        <tr><td><strong>冗余与支撑层</strong></td><td>冗余电源、冗余通信通道、诊断与监控接口</td><td>提供供电与通信冗余、自诊断、日志记录与对外接口。</td></tr>
+                    </tbody>
+                </table>
+                <h3>2.2 功能—组件映射</h3>
+                <div class="content">
+                    <ul>
+                        <li>横纵向协调控制功能 → 决策控制层 VCU；</li>
+                        <li>转向/制动/驱动执行功能 → 执行层三个子系统；</li>
+                        <li>状态闭环与故障监测功能 → 感知反馈层 + 冗余监控 MCU；</li>
+                        <li>降级与最小风险策略 → 决策控制层调度，经执行层与冗余层协同完成。</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <span class="level-tag">3 · 系统控制框图</span>
+            <h2>线控底盘平台控制框图</h2>
+            <div class="diagram">
+                <div class="diag-row">
+                    <div class="diag-box">
+                        <div class="box-title">自动驾驶域控制器 ADS</div>
+                        <div class="box-sub">规划轨迹 / 期望力矩指令</div>
+                    </div>
+                </div>
+                <div class="diag-arrow">↓ 控制指令</div>
+                <div class="diag-row">
+                    <div class="diag-box hl">
+                        <div class="box-title">底盘域控制器 VCU</div>
+                        <div class="box-sub">横纵向协调控制 · 指令校验</div>
+                    </div>
+                    <div class="diag-box safe">
+                        <div class="box-title">冗余监控 MCU</div>
+                        <div class="box-sub">独立交叉校验 · 故障监督</div>
+                    </div>
+                </div>
+                <div class="diag-arrow">↓ 执行指令（三路）</div>
+                <div class="diag-row">
+                    <div class="diag-box"><div class="box-title">线控转向</div><div class="box-sub">转向角 / 力矩执行</div></div>
+                    <div class="diag-box"><div class="box-title">线控制动</div><div class="box-sub">减速度 / 制动力矩执行</div></div>
+                    <div class="diag-box"><div class="box-title">线控驱动</div><div class="box-sub">驱动力矩 / 矢量分配</div></div>
+                </div>
+                <div class="diag-arrow">↓ 车辆运动</div>
+                <div class="diag-row">
+                    <div class="diag-box"><div class="box-title">整车（车辆运动）</div><div class="box-sub">轨迹跟踪 / 横纵向稳定</div></div>
+                </div>
+                <div class="feedback">↺ 反馈闭环：转角 · 力矩 · 轮速 · 压力 · 温度传感器 → 回传 VCU 与监控 MCU，形成状态闭环与故障监视</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <span class="level-tag gold">4 · 安全需求与安全架构</span>
+            <h2>安全分析、安全需求与安全架构</h2>
+
+            <h3>4.1 安全分析思路</h3>
+            <div class="content">
+                <p>基于初始系统架构开展系统理论过程分析：识别危险场景与潜在失效（执行器卡死、通信中断、传感器失效、电源失效等），分析失效后果与触发路径，据此导出安全需求，并在架构中落实相应的安全措施。</p>
+                <ul>
+                    <li><strong>危险识别：</strong>转向/制动/驱动失控、指令错误、状态反馈丢失、单点故障扩散；</li>
+                    <li><strong>分析方法：</strong>故障树分析（FTA）自上而下追溯危险原因，失效模式与影响分析（FMEA）自下而上评估失效影响，结合冗余与监控思想进行安全架构设计；</li>
+                    <li><strong>安全目标：</strong>任意单点故障不导致车辆不可控，故障后进入可控的安全状态。</li>
+                </ul>
+            </div>
+
+            <h3>4.2 安全需求清单（SR）</h3>
+            <table>
+                <thead><tr><th>编号</th><th>安全需求描述</th><th>对应风险</th></tr></thead>
+                <tbody>
+                    <tr><td class="req-id">SR-01</td><td>关键控制通道与关键传感器采用冗余设计，主通道失效时冗余通道可接管。</td><td>单点硬件失效</td></tr>
+                    <tr><td class="req-id">SR-02</td><td>独立监控 MCU 对主控输出进行交叉校验，发现指令/状态不一致时触发安全响应。</td><td>主控错误或失控</td></tr>
+                    <tr><td class="req-id">SR-03</td><td>通信链路具备冗余与有效性校验，检测到通信中断或数据异常时进入降级策略。</td><td>通信中断 / 数据被篡改</td></tr>
+                    <tr><td class="req-id">SR-04</td><td>电源采用冗余供电，单路电源失效不影响基本安全功能。</td><td>供电失效</td></tr>
+                    <tr><td class="req-id">SR-05</td><td>故障发生后按"检测 → 隔离 → 降级 → 最小风险状态"流程响应：减速、靠边、驻车并上报。</td><td>故障扩散导致事故</td></tr>
+                    <tr><td class="req-id">SR-06</td><td>安全相关设计满足 ISO 26262 功能安全等级要求，关键事件完整记录可追溯。</td><td>合规与责任界定</td></tr>
+                </tbody>
+            </table>
+
+            <h3>4.3 安全架构</h3>
+            <div class="diagram">
+                <div class="diag-row">
+                    <div class="diag-box hl">
+                        <div class="box-title">主控通道（VCU 主 MCU）</div>
+                        <div class="box-sub">控制指令求解与输出</div>
+                    </div>
+                    <div class="diag-box safe">
+                        <div class="box-title">监控通道（冗余 MCU）</div>
+                        <div class="box-sub">独立校验 · 表决 · 监督</div>
+                    </div>
+                </div>
+                <div class="diag-arrow">⇄ 交叉校验 / 表决</div>
+                <div class="diag-row">
+                    <div class="diag-box"><div class="box-title">冗余传感器组</div><div class="box-sub">转角 / 轮速 / 力矩 / 压力</div></div>
+                    <div class="diag-box"><div class="box-title">冗余电源</div><div class="box-sub">12V / 48V 双路供电</div></div>
+                    <div class="diag-box"><div class="box-title">冗余通信通道</div><div class="box-sub">双通道总线 / 报文校验</div></div>
+                </div>
+                <div class="diag-arrow">↓ 安全响应流程</div>
+                <div class="diag-row">
+                    <div class="diag-box"><div class="box-title">故障检测</div><div class="box-sub">阈值 / 一致性诊断</div></div>
+                    <div class="diag-box"><div class="box-title">故障隔离</div><div class="box-sub">切断失效通道</div></div>
+                    <div class="diag-box"><div class="box-title">降级运行</div><div class="box-sub">冗余接管 / 限制工况</div></div>
+                    <div class="diag-box"><div class="box-title">最小风险状态</div><div class="box-sub">减速 · 靠边 · 驻车 · 上报</div></div>
+                </div>
+            </div>
+            <div class="note">
+                安全架构要点：主控与监控通道相互独立、冗余资源并行布置；安全措施覆盖感知、决策、执行、供电、通信各环节；任一环节失效时，系统由冗余通道维持基本可控，并最终进入最小风险状态，避免不可控后果。
+            </div>
+        </div>
+
+        <div class="section">
+            <span class="level-tag">5 · 追溯与小结</span>
+            <h2>需求追溯与结论</h2>
+            <div class="content">
+                <p><strong>追溯关系：</strong>本作业 SyRS 中的每条功能、性能与安全需求均可向上追溯至作业2的相关方需求（REQ-01～08），向下可分配至转向、制动、驱动等子系统需求；架构组件与安全措施对应相应需求条目，形成 BRS → StRS → SyRS → 架构/设计的完整追溯链。</p>
+                <p><strong>小结：</strong>本作业将线控底盘平台的相关方需求转换为技术视角、可度量的系统需求集，明确了外部接口、功能、性能与质量特性约束；在此基础上给出四层初始系统架构、系统控制框图，并通过安全分析导出安全需求与双通道冗余安全架构，为后续系统设计、集成与验证提供基线。</p>
+            </div>
+        </div>
+
+        <p class="footer">Complex Systems Engineering · 小组作业3 · 2026 · TheWinter-lz</p>
+    </div>
+</body>
+</html>
