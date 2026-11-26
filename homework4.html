@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>线控底盘平台 运行场景分析与安全风险 - 复杂系统工程</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        .container { max-width: 1080px; margin: 0 auto; }
+        .top-nav { margin-bottom: 25px; }
+        .top-nav a {
+            color: rgba(255,255,255,0.9); text-decoration: none; font-size: 0.95em;
+            background: rgba(255,255,255,0.15); padding: 8px 16px; border-radius: 20px;
+            display: inline-block; transition: background 0.2s;
+        }
+        .top-nav a:hover { background: rgba(255,255,255,0.28); }
+        h1 { color: white; text-align: center; font-size: 2.3em; margin-bottom: 10px; text-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+        .subtitle { color: rgba(255,255,255,0.9); text-align: center; font-size: 1.1em; margin-bottom: 45px; }
+        .section { background: white; border-radius: 16px; padding: 30px; margin-bottom: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .section > h2 { color: #667eea; margin-bottom: 18px; font-size: 1.5em; border-left: 5px solid #667eea; padding-left: 15px; }
+        .section > h3 { color: #444; margin: 22px 0 10px; font-size: 1.15em; }
+        .level-tag { display: inline-block; background: #667eea; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.85em; margin-bottom: 15px; }
+        .level-tag.gold { background: #ffd700; color: #333; }
+        .content { color: #555; line-height: 1.8; }
+        .content p { margin-bottom: 10px; }
+        .content ul { margin-left: 20px; margin-top: 8px; }
+        .content li { margin-bottom: 8px; }
+        .content strong { color: #333; }
+        .grid-two { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 12px; }
+        .card-mini { background: #f7f8fc; border-radius: 12px; padding: 18px; }
+        .card-mini h4 { color: #667eea; margin-bottom: 8px; font-size: 1.02em; }
+        table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 0.9em; }
+        th, td { border: 1px solid #e3e6f0; padding: 10px 12px; text-align: left; vertical-align: top; line-height: 1.6; }
+        th { background: #667eea; color: white; font-weight: 600; }
+        tbody tr:nth-child(even) { background: #f7f8fc; }
+        .rid { font-family: monospace; color: #667eea; font-weight: 700; white-space: nowrap; }
+        .note { background: #fff8e6; border-left: 4px solid #ffd700; border-radius: 8px; padding: 14px 18px; margin-top: 14px; color: #6b5d2a; font-size: 0.93em; }
+        .footer { text-align: center; color: rgba(255,255,255,0.8); margin-top: 40px; font-size: 0.9em; }
+        .diagram { background: #f7f8fc; border-radius: 12px; padding: 24px 18px; margin-top: 14px; }
+        .diag-row { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; }
+        .diag-box { background: white; border: 2px solid #667eea; border-radius: 12px; padding: 12px 16px; text-align: center; min-width: 130px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .diag-box .box-title { font-weight: 700; color: #333; font-size: 0.95em; }
+        .diag-box .box-sub { font-size: 0.8em; color: #888; margin-top: 4px; }
+        .diag-box.hl { background: #667eea; border-color: #5568d3; }
+        .diag-box.hl .box-title, .diag-box.hl .box-sub { color: white; }
+        .diag-box.safe { border-color: #e67e22; background: #fff3e8; }
+        .diag-arrow { text-align: center; color: #667eea; font-size: 1.2em; font-weight: bold; margin: 6px 0; }
+        .layer-stack { max-width: 640px; margin: 0 auto; }
+        .layer-stack .layer { background: white; border-left: 6px solid #667eea; border-radius: 8px; padding: 10px 16px; margin-bottom: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+        .layer-stack .layer .lt { font-weight: 700; color: #333; font-size: 0.95em; }
+        .layer-stack .layer .ls { color: #777; font-size: 0.85em; }
+        .layer-stack .layer:nth-child(3) { border-left-color: #7b8cf0; }
+        .layer-stack .layer:nth-child(5) { border-left-color: #9aa8f5; }
+        .layer-stack .layer:nth-child(7) { border-left-color: #ffd700; }
+        @media (max-width: 760px) { .grid-two { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav class="top-nav">
+            <a href="index.html">← 返回作业导航首页</a>
+        </nav>
+
+        <h1>线控底盘平台 · 运行场景与安全风险</h1>
+        <p class="subtitle">复杂系统工程 · 小组作业4 · 场景分层 · 场景要素 · 运行设计条件 ODD · 典型场景实例 · 安全风险分析</p>
+
+        <div class="section">
+            <span class="level-tag">0 · 作业概述</span>
+            <h2>作业目的与分析路径</h2>
+            <div class="content">
+                <p><strong>所选系统：</strong>面向高级别自动驾驶（L4）的线控底盘平台，延续作业1～3的系统层对象、需求与架构结论。</p>
+                <p><strong>作业要求对应：</strong>围绕系统所处的环境，① 进行场景分层；② 梳理每个场景分层的具体场景要素；③ 设定系统正常运行的运行设计条件（运行设计范围、系统状态、人员状态）；④ 选取一个典型场景做实例化详细论述；⑤ 对该典型案例进行安全风险分析，得到风险场景列表。</p>
+                <div class="note">
+                    <strong>分析主线：</strong>场景分层（L1～L5）→ 各层要素清单 → 正常运行条件 ODD（框定"什么情况下允许运行"）→ 典型场景实例 SC-01 逐秒展开 → 要素扰动驱动的安全风险分析 → 风险场景列表（含 S/E/C 与 ASIL 评定）→ 回溯至作业3 的安全需求 SR。
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <span class="level-tag">1 · 场景分层</span>
+            <h2>五层场景分层模型</h2>
+            <div class="content">
+                <p><strong>分层逻辑：</strong>按"环境约束 → 道路结构 → 交通交互 → 运行任务 → 系统执行"由外向内、由粗到细分层。上层为下层提供约束边界，下层在给定约束下展开具体行为，任意一层的要素偏离即构成场景扰动来源。</p>
+                <div class="diagram">
+                    <div class="layer-stack">
+                        <div class="layer">
+                            <div class="lt">L1 环境层（宏观环境约束）</div>
+                            <div class="ls">城市区域 · 气候天气 · 光照 · 路网等级 · 法规与运营许可</div>
+                        </div>
+                        <div class="diag-arrow">↓ 约束</div>
+                        <div class="layer">
+                            <div class="lt">L2 道路层（中观静态结构）</div>
+                            <div class="ls">路口几何 · 车道与标线 · 路面材质与附着 · 坡度 · 设施与障碍</div>
+                        </div>
+                        <div class="diag-arrow">↓ 约束</div>
+                        <div class="layer">
+                            <div class="lt">L3 交通层（动态交通交互）</div>
+                            <div class="ls">交通流 · 车辆/行人/两轮车 · 信号与路权 · 冲突点</div>
+                        </div>
+                        <div class="diag-arrow">↓ 约束</div>
+                        <div class="layer">
+                            <div class="lt">L4 任务层（运行任务与模式）</div>
+                            <div class="ls">出行任务 · 全程路径 · 驾驶模式（L4 全无人 / 远程监控）</div>
+                        </div>
+                        <div class="diag-arrow">↓ 分解为控制指令</div>
+                        <div class="layer">
+                            <div class="lt">L5 系统层（本系统执行层）</div>
+                            <div class="ls">横纵向协调 · 转向/制动/驱动执行 · 状态反馈 · 故障降级与最小风险</div>
+                        </div>
+                    </div>
+                </div>
+                <p style="margin-top:14px;"><strong>本作业聚焦：</strong>L4/L5 两层是线控底盘平台直接作用的层级，L1～L3 提供外部条件。故典型场景选取以"L2 路口几何 + L3 行人横穿 + L1 湿滑天气"的组合，观测 L5 的底盘响应。</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <span class="level-tag">2 · 场景要素</span>
+            <h2>各场景分层的具体场景要素</h2>
+            <div class="content">
+                <p>每层按"静态要素 / 动态要素 / 随机扰动要素"三个维度梳理，形成可枚举、可核对的要素清单。</p>
+                <table>
+                    <thead><tr><th>分层</th><th>静态要素</th><th>动态要素</th><th>随机扰动要素</th></tr></thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>L1 环境层</strong></td>
+                            <td>城市类型、道路等级、季节、运营设计域（ODD 围栏）</td>
+                            <td>天气（降雨/雾/雪）、光照强度与方向、环境温度</td>
+                            <td>突发降雨、强侧风、逆光、能见度骤降</td>
+                        </tr>
+                        <tr>
+                            <td><strong>L2 道路层</strong></td>
+                            <td>十字路口几何、车道宽度（3.5 m）、转弯半径、渠化岛、标线与停止线、路面材质</td>
+                            <td>路面附着状态（干 μ≈0.8 / 湿 μ≈0.5 / 结冰 μ≈0.2）、积水、坡度</td>
+                            <td>局部油污、井盖缺失、临时施工围挡、标线磨损</td>
+                        </tr>
+                        <tr>
+                            <td><strong>L3 交通层</strong></td>
+                            <td>交叉口信号配时、路权分配、限速（50 km/h）</td>
+                            <td>交通流量、对向直行车流、排队长度、行人流量</td>
+                            <td>行人突然横穿、非机动车闯灯、前车急刹、大型车遮挡视线</td>
+                        </tr>
+                        <tr>
+                            <td><strong>L4 任务层</strong></td>
+                            <td>出行任务（起点/终点）、全程路线、驾驶模式配置</td>
+                            <td>当前运行阶段（接近路口 / 转向中 / 通过）、速度曲线、接管状态</td>
+                            <td>临时改道、任务取消、远程指令介入、乘客异常行为</td>
+                        </tr>
+                        <tr>
+                            <td><strong>L5 系统层</strong></td>
+                            <td>底盘架构（决策层/执行层/感知反馈层/冗余支撑层）、性能指标（时延 ≤10 ms、精度 ≤0.1 m）</td>
+                            <td>转向角、减速度、驱动力矩、附着估计、闭环反馈周期</td>
+                            <td>执行器卡滞、传感器漂移、通信丢包、单路电源失效</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="note">
+                    <strong>要素—需求映射：</strong>L5 中的每一项要素偏差都能对应到作业3 的需求条目：响应时延 → PR-01，轨迹误差 → PR-02，故障与降级 → FR-06/FR-07 与 SR-01～SR-05。这使"场景"成为需求的验证载体。
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <span class="level-tag">3 · 运行设计条件</span>
+            <h2>系统正常运行的运行设计条件（ODD）</h2>
+
+            <h3>3.1 运行设计范围</h3>
+            <table>
+                <thead><tr><th>维度</th><th>允许范围（正常运行）</th><th>禁止 / 退出条件</th></tr></thead>
+                <tbody>
+                    <tr><td>道路类型</td><td>结构化城市道路：主干道、次干道、标准化交叉口，含无保护左转路口</td><td>非结构化道路、施工临时道路、无标线乡村道路</td></tr>
+                    <tr><td>地理围栏</td><td>示范运营区内已高精建图路段</td><td>围栏外、地图未覆盖或地图与实景不一致</td></tr>
+                    <tr><td>速度范围</td><td>0～60 km/h（路口内 ≤30 km/h）</td><td>超过 60 km/h、匝道高速段</td></tr>
+                    <tr><td>天气与能见度</td><td>晴、阴、小雨（雨量 ≤ 中雨），能见度 ≥ 100 m</td><td>大雨/暴雨、浓雾、降雪、路面积水深度 &gt; 5 mm</td></tr>
+                    <tr><td>光照</td><td>白天、夜间且有功能照明</td><td>无照明夜间、强逆光直射</td></tr>
+                    <tr><td>路面附着</td><td>附着系数 μ ≥ 0.4（湿态沥青）</td><td>结冰、积雪、油污路面（μ &lt; 0.4）</td></tr>
+                    <tr><td>通信与定位</td><td>4G/5G 覆盖，定位与高精地图可用</td><td>信号盲区、定位失锁超过阈值</td></tr>
+                </tbody>
+            </table>
+
+            <h3>3.2 系统状态</h3>
+            <div class="content">
+                <div class="grid-two">
+                    <div class="card-mini">
+                        <h4>状态 A · 正常（全功能）</h4>
+                        <ul>
+                            <li>双通道控制器、双路电源、双路通信均正常；</li>
+                            <li>全部功能可用，允许无保护左转、路口混流交互；</li>
+                            <li>性能按 PR-01～PR-05 满指标执行。</li>
+                        </ul>
+                    </div>
+                    <div class="card-mini">
+                        <h4>状态 B · 降级（受限功能）</h4>
+                        <ul>
+                            <li>单通道/单传感器/单路电源失效，冗余通道接管；</li>
+                            <li>限速 ≤30 km/h，禁止无保护左转，仅允许简单跟驰与右转；</li>
+                            <li>持续向远程监控上报降级原因。</li>
+                        </ul>
+                    </div>
+                    <div class="card-mini">
+                        <h4>状态 C · 故障（最小风险）</h4>
+                        <ul>
+                            <li>冗余同时失效或关键执行器卡死；</li>
+                            <li>执行"减速 → 靠边 → 驻车 → 上报"最小风险序列；</li>
+                            <li>禁止继续自动驾驶，等待远程处置。</li>
+                        </ul>
+                    </div>
+                    <div class="card-mini">
+                        <h4>状态 D · 人工接管</h4>
+                        <ul>
+                            <li>远程安全员请求接管或系统主动求助；</li>
+                            <li>底盘由自动驾驶指令切换为远程/人工指令；</li>
+                            <li>切换过程需保证指令源唯一、无冲突。</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <h3>3.3 人员状态</h3>
+            <table>
+                <thead><tr><th>人员角色</th><th>状态设定</th><th>约束</th></tr></thead>
+                <tbody>
+                    <tr><td>车内驾驶员</td><td>L4 运行模式下无驾驶员，方向盘可收起</td><td>不承担动态驾驶任务，不参与实时控制</td></tr>
+                    <tr><td>乘员</td><td>系安全带，坐姿正常，无干扰驾驶的行为</td><td>乘员异常行为（站立、解开安全带、干扰操控）触发降级</td></tr>
+                    <tr><td>远程安全员</td><td>1 名安全员监控 1 台车，可在 ≤10 s 内接管</td><td>需持有相应资质，接管时车辆须处于可控状态</td></tr>
+                    <tr><td>车外交通参与者</td><td>行人、非机动车、其他车辆按交通规则通行</td><td>不假设其绝对守规，需考虑违规横穿等扰动</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <span class="level-tag gold">4 · 典型场景实例</span>
+            <h2>SC-01：雨天路口无保护左转遇行人横穿</h2>
+
+            <h3>4.1 场景设定</h3>
+            <div class="content">
+                <p><strong>场景编号：</strong>SC-01　<strong>场景名称：</strong>湿滑路面下十字路口无保护左转，左前方行人突发行人横穿</p>
+                <table>
+                    <thead><tr><th>要素层</th><th>本例取值</th></tr></thead>
+                    <tbody>
+                        <tr><td>L1 环境</td><td>城市主干道十字路口；小雨，路面湿态；白天，能见度约 300 m；气温 12 ℃</td></tr>
+                        <tr><td>L2 道路</td><td>双向四车道，车道宽 3.5 m；无左转专用信号（无保护左转）；左转半径约 12 m；湿沥青 μ≈0.5；路口内无渠化岛</td></tr>
+                        <tr><td>L3 交通</td><td>对向直行车流中等（约 400 辆/h）；左侧人行横道有行人通过；右后方有一台两轮车</td></tr>
+                        <tr><td>L4 任务</td><td>L4 全无人运营，前往下一站点；当前阶段为"接近路口 → 左转 → 通过"</td></tr>
+                        <tr><td>L5 系统</td><td>底盘状态 A（全功能正常）；响应时延指标 10 ms；轨迹精度指标 0.1 m</td></tr>
+                    </tbody>
+                </table>
+                <p style="margin-top:12px;"><strong>初始条件：</strong>自车以 30 km/h 驶向停止线，距停止线 25 m；ADS 已规划左转轨迹（转弯半径 12 m，对应前轮转角约 18°）。</p>
+            </div>
+
+            <h3>4.2 事件时序（以进入路口为 t=0）</h3>
+            <table>
+                <thead><tr><th>时刻</th><th>外部事件</th><th>系统/底盘响应</th><th>状态量</th></tr></thead>
+                <tbody>
+                    <tr><td class="rid">t = −3.0 s</td><td>距停止线 25 m，对向直行车流间隙出现</td><td>ADS 判定可通过，下发左转轨迹与减速指令（目标 20 km/h）</td><td>v = 30 km/h，a ≈ −0.15 g</td></tr>
+                    <tr><td class="rid">t = −1.5 s</td><td>进入左转待转区</td><td>线控制动轻制动，驱动扭矩回收；转角预置至 5°</td><td>v ≈ 20 km/h</td></tr>
+                    <tr><td class="rid">t = 0 s</td><td>越过停止线，开始左转</td><td>VCU 按轨迹解算横纵向指令：转角 5°→18°，驱动力矩维持低速巡航</td><td>转角 18°，v ≈ 20 km/h</td></tr>
+                    <tr><td class="rid">t = +0.40 s</td><td>左前方 18 m 处，行人从人行横道进入车道，横穿速度约 1.2 m/s，预测 TTC ≈ 3.0 s</td><td>感知输出目标航迹；ADS 判定冲突，决策由"左转"切换为"制动优先 + 转角回正"</td><td>转角 18°→10°（回正中）</td></tr>
+                    <tr><td class="rid">t = +0.50 s</td><td>—</td><td>ADS 下发制动请求 −0.6 g 与转角回正指令</td><td>请求减速度 −0.6 g</td></tr>
+                    <tr><td class="rid">t = +0.51 s</td><td>—</td><td>VCU 完成指令校验与通道分配，10 ms 内输出至执行层（满足 PR-01）</td><td>底盘响应时延 ≤10 ms</td></tr>
+                    <tr><td class="rid">t = +0.55 s</td><td>湿路面，附着上限约 0.5 g</td><td>线控制动建压，ABS/ESC 介入将实际减速度限制在 −0.45 g，避免车轮抱死</td><td>实际 a ≈ −0.45 g</td></tr>
+                    <tr><td class="rid">t = +1.81 s</td><td>行人继续横穿，距自车左前约 1.5 m</td><td>车辆停稳，转角回正至 0°，驻车保持</td><td>v = 0，横向偏差 &lt; 0.1 m（满足 PR-02）</td></tr>
+                    <tr><td class="rid">t = +3.00 s</td><td>行人离开车道，冲突解除</td><td>ADS 重新规划左转轨迹，底盘恢复起步并完成左转</td><td>v 恢复至 15 km/h</td></tr>
+                </tbody>
+            </table>
+            <div class="note">
+                <strong>若附着进一步下降（μ≈0.3，附着上限约 0.29 g）：</strong>按 5.56 m/s 初速计算，制动距离约 5.4 m，超出 3.5 m 的可用余量，车辆无法在冲突点前停住 → 系统转入"转向避让 + 最小风险"分支，按 SR-05 执行减速、靠边、驻车并上报远程监控。该分支即本场景的主要风险落点。
+            </div>
+
+            <h3>4.3 底盘动作分解</h3>
+            <div class="content">
+                <div class="grid-two">
+                    <div class="card-mini">
+                        <h4>转向通道</h4>
+                        <ul>
+                            <li>左转阶段：转角 5°→18°，闭环跟踪轨迹；</li>
+                            <li>冲突阶段：18°→10°→0°，回正以避免车头继续切入行人路径；</li>
+                            <li>全程转角反馈参与附着与侧向稳定性估计。</li>
+                        </ul>
+                    </div>
+                    <div class="card-mini">
+                        <h4>制动通道</h4>
+                        <ul>
+                            <li>请求 −0.6 g，实际受附着限制为 −0.45 g；</li>
+                            <li>ABS 防抱死 + ESC 侧向稳定协同；</li>
+                            <li>停稳后进入驻车保持，防止溜车。</li>
+                        </ul>
+                    </div>
+                    <div class="card-mini">
+                        <h4>驱动通道</h4>
+                        <ul>
+                            <li>接近路口阶段扭矩回收，辅助减速；</li>
+                            <li>制动期间扭矩置零，避免驱动与制动对抗；</li>
+                            <li>冲突解除后平顺恢复扭矩，jerk 受控（PR-04）。</li>
+                        </ul>
+                    </div>
+                    <div class="card-mini">
+                        <h4>监控与冗余</h4>
+                        <ul>
+                            <li>冗余监控 MCU 交叉校验制动请求与实际减速度；</li>
+                            <li>附着估计偏低时提前上调风险等级；</li>
+                            <li>单通道异常即由冗余接管，不中断制动。</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <h3>4.4 指标核对与通过判据</h3>
+            <table>
+                <thead><tr><th>指标（作业3 PR）</th><th>本例要求</th><th>本例实测/推演</th><th>判定</th></tr></thead>
+                <tbody>
+                    <tr><td>PR-01 控制响应时延</td><td>≤10 ms</td><td>指令下发至执行输出 10 ms</td><td>满足</td></tr>
+                    <tr><td>PR-02 轨迹控制精度</td><td>≤0.1 m</td><td>停车点横向偏差 &lt;0.1 m</td><td>满足</td></tr>
+                    <tr><td>PR-04 舒适性</td><td>jerk 受控</td><td>−0.45 g 建压斜率受控，无突变</td><td>满足</td></tr>
+                    <tr><td>PR-03 可用性</td><td>≥99.999%</td><td>本例无故障，不计入不可用时间</td><td>满足</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <span class="level-tag gold">5 · 安全风险分析</span>
+            <h2>典型场景的安全风险分析与风险场景列表</h2>
+
+            <h3>5.1 分析方法</h3>
+            <div class="content">
+                <p>以 SC-01 为基准场景，采用<strong>要素扰动法</strong>逐层引入偏差（weather / road / traffic / system），结合 FMEA 识别失效模式，再按 ISO 26262 的 S（严重度）、E（暴露度）、C（可控性）三维评定风险等级并确定 ASIL。</p>
+                <ul>
+                    <li><strong>S 严重度：</strong>S1 轻伤 / S2 重伤 / S3 致命；</li>
+                    <li><strong>E 暴露度：</strong>E1 极低 / E2 低 / E3 中 / E4 高（路口无保护左转属高频工况）；</li>
+                    <li><strong>C 可控性：</strong>C1 易控 / C2 一般 / C3 难控或不可控（无驾驶员，只能依赖系统自身）。</li>
+                </ul>
+            </div>
+
+            <h3>5.2 风险场景列表</h3>
+            <table>
+                <thead><tr><th>编号</th><th>风险场景（要素扰动组合）</th><th>危害事件</th><th>S/E/C</th><th>ASIL</th><th>对应安全需求</th></tr></thead>
+                <tbody>
+                    <tr><td class="rid">R-01</td><td>L5 系统：制动指令响应超时（&gt;10 ms）或建压不足，左转中制动滞后</td><td>无法在行人冲突点前停住，与行人发生碰撞</td><td>S3 / E4 / C3</td><td>D</td><td>SR-02</td></tr>
+                    <tr><td class="rid">R-02</td><td>L2 道路：湿滑或局部积水，附着 μ&lt;0.4，制动距离超出可用余量</td><td>制动不及，撞及横穿行人或冲出车道</td><td>S3 / E3 / C3</td><td>C</td><td>SR-05</td></tr>
+                    <tr><td class="rid">R-03</td><td>L5 系统：转向执行器卡滞或转角响应迟滞，回正不到位</td><td>车头持续切入行人路径，避让失败</td><td>S3 / E3 / C3</td><td>C</td><td>SR-01</td></tr>
+                    <tr><td class="rid">R-04</td><td>L1/L3 环境与交通：雨雾逆光或大型车遮挡，感知漏检横穿行人</td><td>未触发制动，直接驶入冲突区</td><td>S3 / E3 / C3</td><td>C</td><td>SR-03（并归 SOTIF 管理）</td></tr>
+                    <tr><td class="rid">R-05</td><td>L5 系统：通信链路中断或报文丢失，制动请求未到达执行层</td><td>车辆保持原速左转，与行人/对向车冲突</td><td>S3 / E4 / C3</td><td>D</td><td>SR-03</td></tr>
+                    <tr><td class="rid">R-06</td><td>L5 系统：12V 单路电源失效，制动助力与转向助力下降</td><td>制动力不足，转向变沉，响应迟滞</td><td>S3 / E3 / C3</td><td>C</td><td>SR-04</td></tr>
+                    <tr><td class="rid">R-07</td><td>L5 系统：主控与监控共因失效（同源软件/同路供电），冗余失效</td><td>错误指令未被拦截，车辆失控</td><td>S3 / E4 / C2</td><td>D</td><td>SR-02 / SR-01</td></tr>
+                    <tr><td class="rid">R-08</td><td>L4 任务：远程安全员接管时延过长（&gt;10 s），车辆滞留路口</td><td>车辆停在冲突区，被对向或后方车辆碰撞</td><td>S2 / E3 / C3</td><td>C</td><td>SR-05（降级链路）</td></tr>
+                </tbody>
+            </table>
+
+            <h3>5.3 风险分级与处置优先级</h3>
+            <div class="content">
+                <table>
+                    <thead><tr><th>等级</th><th>风险编号</th><th>处置策略</th></tr></thead>
+                    <tbody>
+                        <tr><td><strong>ASIL D（最高）</strong></td><td>R-01、R-05、R-07</td><td>双通道冗余 + 独立监控 + 通信双链路与报文校验，硬件与软件层面均需独立实现，避免共因</td></tr>
+                        <tr><td><strong>ASIL C</strong></td><td>R-02、R-03、R-04、R-06、R-08</td><td>附着估计与制动距离预判、转向冗余与卡滞检测、感知多源融合、双路电源、接管流程时限管理</td></tr>
+                    </tbody>
+                </table>
+                <div class="note">
+                    <strong>与作业3 的衔接：</strong>上述风险条目均落到已定义的安全需求上——冗余设计（SR-01）、独立监控校验（SR-02）、通信冗余与校验（SR-03）、电源冗余（SR-04）、检测-隔离-降级-最小风险流程（SR-05）、功能安全等级与记录（SR-06）。本作业的风险场景列表即为这些安全需求的来源与验证场景。
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <span class="level-tag">6 · 小结</span>
+            <h2>结论与后续</h2>
+            <div class="content">
+                <p><strong>结论：</strong>本作业按"环境—道路—交通—任务—系统"五层完成场景分层并给出要素清单；以运行设计范围、系统状态、人员状态三方面设定正常运行条件 ODD；选取"雨天路口无保护左转遇行人横穿"（SC-01）作为典型实例，逐秒展开底盘在转向、制动、驱动与监控通道上的响应；基于要素扰动完成安全风险分析，得到 8 条风险场景，其中 3 条评定为 ASIL D。</p>
+                <p><strong>后续：</strong>风险场景列表可作为子系统/模块级需求与测试用例的输入；SC-01 的时序与判据可直接转化为在环测试与场地测试的验收脚本。</p>
+            </div>
+        </div>
+
+        <p class="footer">Complex Systems Engineering · 小组作业4 · 2026 · TheWinter-lz</p>
+    </div>
+</body>
+</html>
